@@ -3,8 +3,7 @@ import { bench, describe } from 'vitest'
 import { stripLiteralAcorn, stripLiteralRegex } from '../src'
 
 const modules = {
-  'vue-global': './node_modules/vue/dist/vue.runtime.global.js',
-  'three': './node_modules/three/build/three.module.js',
+  'vue-esm-bundler': './node_modules/vue/dist/vue.esm-bundler.js',
 }
 
 Object.entries(modules).forEach(([name, path]) => {
