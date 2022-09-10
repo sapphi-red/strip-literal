@@ -40,3 +40,32 @@ export function stripLiteralAcorn(code: string) {
 
   return result
 }
+
+export function getLiteralPosAcorn(code: string) {
+  const result: number[] = [] // literal start, non-literal start, literal start...
+
+  const tokens = tokenizer(code, {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    allowHashBang: true,
+    allowAwaitOutsideFunction: true,
+    allowImportExportEverywhere: true,
+  })
+  const inter = tokens[Symbol.iterator]()
+
+  while (true) {
+    const { done, value: token } = inter.next()
+    if (done)
+      break
+    if (token.type.label === 'string') {
+      result.push(token.start + 1)
+      result.push(token.end - 1)
+    }
+    else if (token.type.label === 'template') {
+      result.push(token.start)
+      result.push(token.end)
+    }
+  }
+
+  return result
+}

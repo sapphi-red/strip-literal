@@ -1,6 +1,7 @@
 import { readFile } from 'fs/promises'
 import { bench, describe } from 'vitest'
 import { stripLiteralAcorn, stripLiteralRegex } from '../src'
+import { getLiteralPosAcorn } from '../src/acorn'
 
 const modules = {
   'vue-esm-bundler': './node_modules/vue/dist/vue.esm-bundler.js',
@@ -61,6 +62,24 @@ Object.entries(modules).forEach(([name, path]) => {
       return newCode
     }
 
+    function binarySearch(array: ArrayLike<number>, pred: (v: number) => boolean) {
+      let low = -1
+      let high = array.length
+      while (1 + low < high) {
+        const mid = low + ((high - low) >> 1)
+        if (pred(array[mid]))
+          high = mid
+        else
+          low = mid
+      }
+      return high
+    }
+
+    function isLiteral(posList: number[], pos: number) {
+      const i = binarySearch(posList, v => pos < v)
+      return (i - 1) % 2 === 0
+    }
+
     bench('regex replace (current)', () => {
       code.replace(pattern, (_, match) => `${replacements[match]}`)
     })
@@ -71,6 +90,12 @@ Object.entries(modules).forEach(([name, path]) => {
     bench('strip-literal(regex) + regex replace', () => {
       const stripedCode = stripLiteralRegex(code)
       replaceOverStripedCode(code, stripedCode, pattern, replacements)
+    })
+    bench('replace-non-literal(acorn)', () => {
+      const posList = getLiteralPosAcorn(code)
+      code.replace(pattern, (_, match, offset) =>
+        isLiteral(posList, offset) ? match : `${replacements[match]}`,
+      )
     })
   })
 })
