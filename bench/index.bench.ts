@@ -2,6 +2,7 @@ import { readFile } from 'fs/promises'
 import { bench, describe } from 'vitest'
 import { stripLiteralAcorn, stripLiteralRegex } from '../src'
 import { getLiteralPosAcorn } from '../src/acorn'
+import { getLiteralPosSwc } from '../swc-lexer/pkg/swc_lexer'
 
 const modules = {
   'vue-esm-bundler': './node_modules/vue/dist/vue.esm-bundler.js',
@@ -75,7 +76,7 @@ Object.entries(modules).forEach(([name, path]) => {
       return high
     }
 
-    function isLiteral(posList: number[], pos: number) {
+    function isLiteral(posList: ArrayLike<number>, pos: number) {
       const i = binarySearch(posList, v => pos < v)
       return (i - 1) % 2 === 0
     }
@@ -93,6 +94,12 @@ Object.entries(modules).forEach(([name, path]) => {
     })
     bench('replace-non-literal(acorn)', () => {
       const posList = getLiteralPosAcorn(code)
+      code.replace(pattern, (_, match, offset) =>
+        isLiteral(posList, offset) ? match : `${replacements[match]}`,
+      )
+    })
+    bench('replace-non-literal(swc)', () => {
+      const posList = getLiteralPosSwc(code)
       code.replace(pattern, (_, match, offset) =>
         isLiteral(posList, offset) ? match : `${replacements[match]}`,
       )
