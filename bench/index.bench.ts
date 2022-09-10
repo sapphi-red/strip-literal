@@ -4,6 +4,7 @@ import { stripLiteralAcorn, stripLiteralRegex } from '../src'
 
 const modules = {
   'vue-esm-bundler': './node_modules/vue/dist/vue.esm-bundler.js',
+  'vue-compiler-core-esm-bundler': './node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js',
 }
 
 Object.entries(modules).forEach(([name, path]) => {
