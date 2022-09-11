@@ -2,7 +2,8 @@ import { readFile } from 'fs/promises'
 import { bench, describe } from 'vitest'
 import { stripLiteralAcorn, stripLiteralRegex } from '../src'
 import { getLiteralPosAcorn } from '../src/acorn'
-import { getLiteralPosSwc, stripLiteralSwc } from '../swc-lexer-wasm/pkg/swc_lexer_wasm'
+import { getLiteralPosSwc as getLiteralPosSwcWasm, stripLiteralSwc as stripLiteralSwcWasm } from '../swc-lexer-wasm/pkg/swc_lexer_wasm'
+import { getLiteralPosSwc, stripLiteralSwc } from '../swc-lexer'
 
 const modules = {
   'vue-esm-bundler': './node_modules/vue/dist/vue.esm-bundler.js',
@@ -92,6 +93,10 @@ Object.entries(modules).forEach(([name, path]) => {
       const stripedCode = stripLiteralSwc(code)
       replaceOverStripedCode(code, stripedCode, pattern, replacements)
     })
+    bench('strip-literal(swc-wasm) + regex replace', () => {
+      const stripedCode = stripLiteralSwcWasm(code)
+      replaceOverStripedCode(code, stripedCode, pattern, replacements)
+    })
     bench('strip-literal(regex) + regex replace', () => {
       const stripedCode = stripLiteralRegex(code)
       replaceOverStripedCode(code, stripedCode, pattern, replacements)
@@ -104,6 +109,12 @@ Object.entries(modules).forEach(([name, path]) => {
     })
     bench('replace-non-literal(swc)', () => {
       const posList = getLiteralPosSwc(code)
+      code.replace(pattern, (_, match, offset) =>
+        isLiteral(posList, offset) ? match : `${replacements[match]}`,
+      )
+    })
+    bench('replace-non-literal(swc-wasm)', () => {
+      const posList = getLiteralPosSwcWasm(code)
       code.replace(pattern, (_, match, offset) =>
         isLiteral(posList, offset) ? match : `${replacements[match]}`,
       )
