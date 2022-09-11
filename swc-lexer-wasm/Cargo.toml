@@ -1,5 +1,5 @@
 [package]
-name = "swc-lexer"
+name = "swc-lexer-wasm"
 version = "0.1.0"
 authors = ["sapphi-red <green@sapphi.red>"]
 edition = "2018"

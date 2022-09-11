@@ -2,7 +2,7 @@ import { readFile } from 'fs/promises'
 import { bench, describe } from 'vitest'
 import { stripLiteralAcorn, stripLiteralRegex } from '../src'
 import { getLiteralPosAcorn } from '../src/acorn'
-import { getLiteralPosSwc, stripLiteralSwc } from '../swc-lexer/pkg/swc_lexer'
+import { getLiteralPosSwc, stripLiteralSwc } from '../swc-lexer-wasm/pkg/swc_lexer_wasm'
 
 const modules = {
   'vue-esm-bundler': './node_modules/vue/dist/vue.esm-bundler.js',
