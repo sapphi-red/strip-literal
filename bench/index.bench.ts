@@ -2,7 +2,7 @@ import { readFile } from 'fs/promises'
 import { bench, describe } from 'vitest'
 import { stripLiteralAcorn, stripLiteralRegex } from '../src'
 import { getLiteralPosAcorn } from '../src/acorn'
-import { getLiteralPosSwc } from '../swc-lexer/pkg/swc_lexer'
+import { getLiteralPosSwc, stripLiteralSwc } from '../swc-lexer/pkg/swc_lexer'
 
 const modules = {
   'vue-esm-bundler': './node_modules/vue/dist/vue.esm-bundler.js',
@@ -86,6 +86,10 @@ Object.entries(modules).forEach(([name, path]) => {
     })
     bench('strip-literal(acorn) + regex replace', () => {
       const stripedCode = stripLiteralAcorn(code)
+      replaceOverStripedCode(code, stripedCode, pattern, replacements)
+    })
+    bench('strip-literal(swc) + regex replace', () => {
+      const stripedCode = stripLiteralSwc(code)
       replaceOverStripedCode(code, stripedCode, pattern, replacements)
     })
     bench('strip-literal(regex) + regex replace', () => {
