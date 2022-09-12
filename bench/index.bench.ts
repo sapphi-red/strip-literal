@@ -1,7 +1,7 @@
 import { readFile } from 'fs/promises'
 import { bench, describe } from 'vitest'
 import { stripLiteralAcorn, stripLiteralRegex } from '../src'
-import { getLiteralPosAcorn } from '../src/acorn'
+import { createIsLiteralPositionAcorn } from '../src/acorn'
 import { getLiteralPosSwc as getLiteralPosSwcWasm, stripLiteralSwc as stripLiteralSwcWasm } from '../swc-lexer-wasm/pkg/swc_lexer_wasm'
 import { getLiteralPosSwc, stripLiteralSwc } from '../swc-lexer'
 
@@ -102,9 +102,9 @@ Object.entries(modules).forEach(([name, path]) => {
       replaceOverStripedCode(code, stripedCode, pattern, replacements)
     })
     bench('replace-non-literal(acorn)', () => {
-      const posList = getLiteralPosAcorn(code)
+      const isLiteral = createIsLiteralPositionAcorn(code)
       code.replace(pattern, (_, match, offset) =>
-        isLiteral(posList, offset) ? match : `${replacements[match]}`,
+        isLiteral(offset) ? match : `${replacements[match]}`,
       )
     })
     bench('replace-non-literal(swc)', () => {

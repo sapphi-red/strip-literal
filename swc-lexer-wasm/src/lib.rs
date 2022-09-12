@@ -1,5 +1,6 @@
 mod utils;
 
+use swc_common::comments::{SingleThreadedComments};
 use swc_common::sync::Lrc;
 use swc_common::{
     FileName, SourceMap,
@@ -72,11 +73,13 @@ pub fn get_literal_pos_swc(input: String) -> Vec<u32> {
         input,
     );
 
+    let comments = SingleThreadedComments::default();
+
     let lexer = Lexer::new(
         Syntax::Es(Default::default()),
         EsVersion::Es2022,
         StringInput::from(&*fm),
-        None,
+        Some(&comments),
     );
 
     let mut pos_list = Vec::new();
@@ -93,6 +96,16 @@ pub fn get_literal_pos_swc(input: String) -> Vec<u32> {
             },
             _ => {}
         }
+    }
+
+    let (leading_comments, trailing_comments) = comments.take_all();
+    for c in leading_comments.take().into_values().flatten() {
+        pos_list.push(c.span.lo.0 - 1);
+        pos_list.push(c.span.hi.0 - 1);
+    }
+    for c in trailing_comments.take().into_values().flatten() {
+        pos_list.push(c.span.lo.0 - 1);
+        pos_list.push(c.span.hi.0 - 1);
     }
 
     return pos_list;

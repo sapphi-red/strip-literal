@@ -41,8 +41,15 @@ export function stripLiteralAcorn(code: string) {
   return result
 }
 
-export function getLiteralPosAcorn(code: string) {
-  const result: number[] = [] // literal start, non-literal start, literal start...
+/**
+ * Returns a function that returns whether the position is
+ * in a literal using Acorn's tokenizer.
+ *
+ * Will throw error if the input is not valid JavaScript.
+ */
+export function createIsLiteralPositionAcorn(code: string) {
+  // literal start position, non-literal start position, literal start position, ...
+  const positionList: number[] = []
 
   const tokens = tokenizer(code, {
     ecmaVersion: 'latest',
@@ -50,6 +57,10 @@ export function getLiteralPosAcorn(code: string) {
     allowHashBang: true,
     allowAwaitOutsideFunction: true,
     allowImportExportEverywhere: true,
+    onComment(_isBlock, _text, start, end) {
+      positionList.push(start)
+      positionList.push(end)
+    },
   })
   const inter = tokens[Symbol.iterator]()
 
@@ -58,14 +69,30 @@ export function getLiteralPosAcorn(code: string) {
     if (done)
       break
     if (token.type.label === 'string') {
-      result.push(token.start + 1)
-      result.push(token.end - 1)
+      positionList.push(token.start + 1)
+      positionList.push(token.end - 1)
     }
     else if (token.type.label === 'template') {
-      result.push(token.start)
-      result.push(token.end)
+      positionList.push(token.start)
+      positionList.push(token.end)
     }
   }
 
-  return result
+  return (position: number) => {
+    const i = binarySearch(positionList, v => position < v)
+    return (i - 1) % 2 === 0
+  }
+}
+
+function binarySearch(array: ArrayLike<number>, pred: (v: number) => boolean) {
+  let low = -1
+  let high = array.length
+  while (1 + low < high) {
+    const mid = low + ((high - low) >> 1)
+    if (pred(array[mid]))
+      high = mid
+    else
+      low = mid
+  }
+  return high
 }
